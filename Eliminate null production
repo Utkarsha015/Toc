@@ -1,0 +1,132 @@
+//Program to eliminate null production and unit production from CFG
+
+//Program code
+
+from collections import defaultdict
+
+def parse_grammar():
+
+ grammar = defaultdict(set)
+
+ print("Enter grammar rules (format: A -> B | C | null). Type 'done' when finished:")
+
+ while True:
+
+ line = input().strip()
+
+ if line.lower() == 'done':
+
+ break
+
+ lhs, rhs = line.split('->')
+
+ lhs = lhs.strip()
+
+ rhs_options = rhs.split('|')
+
+ for option in rhs_options:
+
+ grammar[lhs.strip()].add(option.strip())
+
+ return grammar
+
+def remove_null_productions(grammar):
+
+ nullable = set()
+
+ for lhs in grammar:
+
+ if 'null' in grammar[lhs]:
+
+ nullable.add(lhs)
+
+ 
+
+ def is_nullable(symbol):
+
+ return symbol in nullable or (symbol in grammar and any(is_nullable(prod) for prod in 
+
+grammar[symbol]))
+
+ new_grammar = defaultdict(set)
+
+ for lhs in grammar:
+
+ new_rules = set()
+
+ for rule in grammar[lhs]:
+
+ if rule == 'null':
+
+ continue
+symbols = rule.split()
+
+ for i in range(len(symbols)):
+
+ if symbols[i] in nullable:
+
+ new_rules.add(' '.join(symbols[:i] + symbols[i+1:]).strip())
+
+ new_rules.add(rule)
+
+ new_grammar[lhs] = set(new_rules)
+
+ 
+
+ return new_grammar
+
+def remove_unit_productions(grammar):
+
+ new_grammar = defaultdict(set)
+
+ 
+
+ for lhs in grammar:
+
+ for rule in grammar[lhs]:
+
+ if len(rule.split()) == 1 and rule in grammar:
+
+ new_grammar[lhs].update(grammar[rule])
+
+ else:
+
+ new_grammar[lhs].add(rule)
+
+ 
+
+ return new_grammar
+
+def print_grammar(grammar):
+
+ for lhs in grammar:
+
+ rhs = ' | '.join(grammar[lhs])
+
+ print(f"{lhs} -> {rhs}")
+
+def main():
+
+ grammar = parse_grammar()
+print_grammar(grammar)
+
+ 
+
+ grammar = remove_unit_productions(grammar)
+
+ print("\nGrammar after removing unit productions:")
+
+ print_grammar(grammar)
+
+if __name__ == "__main__":
+
+ main()
+ print("\nOriginal Grammar:")
+
+ print_grammar(grammar)
+
+ 
+
+ grammar = remove_null_productions(grammar)
+
+ print("\nGrammar after removing null productions:")
