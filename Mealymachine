@@ -1,0 +1,131 @@
+Mealy Machine
+
+//Program
+
+class MealyMachine:
+
+ def __init__(self, states, inputs, transitions):
+
+ self.states = states
+
+ self.inputs = inputs
+
+ self.transitions = transitions
+
+ self.current_state = next(iter(states)) # Start with the first state
+
+ def transition(self, input_char):
+
+ if input_char in self.transitions.get(self.current_state, {}):
+
+ next_state, output = self.transitions[self.current_state][input_char]
+
+ self.current_state = next_state
+
+ return output
+
+ raise ValueError(f"No transition for input '{input_char}' from state 
+
+'{self.current_state}'")
+
+def read_config():
+
+ states = set(input("Enter states (space-separated): ").strip().split())
+
+ inputs = set(input("Enter inputs (space-separated): ").strip().split())
+
+ transitions = {}
+
+ while True:
+
+ state = input("Enter state for transitions (or press Enter to finish): ").strip()
+
+ if not state:
+
+ break
+
+ if state not in states:
+
+ print(f"State '{state}' is not defined. Please enter a valid state.")
+
+ continue
+
+ 
+
+ transitions[state] = {}
+
+ 
+
+ while True:
+
+ input_char = input(f"Enter input for state '{state}' (or press Enter to finish): 
+
+").strip()
+
+ if not input_char:
+
+ break
+
+ if input_char not in inputs:
+
+ print(f"Input '{input_char}' is not valid. Please enter a valid input.")
+
+ continue
+
+ 
+
+ next_state = input(f"Enter next state for input '{input_char}': ").strip()
+
+ if next_state not in states:
+
+ print(f"Next state '{next_state}' is not defined. Please enter a valid state.")
+
+ continue
+
+ 
+
+ output = input(f"Enter output for input '{input_char}': ").strip()
+
+ transitions[state][input_char] = (next_state, output)
+
+
+ 
+
+ return states, inputs, transitions
+def main():
+
+ states, inputs, transitions = read_config()
+
+ machine = MealyMachine(states, inputs, transitions)
+
+ 
+
+ print("Initial state:", machine.current_state)
+
+ while True:
+
+ user_input = input("Enter input (or 'q' to quit): ").strip()
+
+ if user_input == 'q':
+
+ break
+
+ if user_input not in inputs:
+
+ print(f"Invalid input '{user_input}'. Please enter a valid input.")
+
+ continue
+
+ try:
+
+ output = machine.transition(user_input)
+
+ print(f"Output: {output}, New State: {machine.current_state}")
+
+ except ValueError as e:
+
+ print(e)
+
+if __name__ == "__main__":
+
+ main()
