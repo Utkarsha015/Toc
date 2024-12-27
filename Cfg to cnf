@@ -1,0 +1,304 @@
+//Program to convert CFG to CNF
+
+ //CODE
+
+import itertools
+
+class CFGtoCNFConverter:
+
+ def __init__(self, productions):
+
+ self.productions = productions
+
+ self.nullables = set()
+
+ self.unit_productions = []
+
+ self.new_productions = {}
+
+ self.terminals = set()
+
+ self.new_var_counter = 0
+
+ def add_new_start_symbol(self):
+
+ print("\nStep 1: Introducing a new start symbol.")
+
+ new_start = 'S\''
+
+ self.productions = {new_start: {'S'}} | self.productions
+
+ self.display()
+
+ def eliminate_null_productions(self):
+
+ print("\nStep 2: Identifying nullable non-terminals.")
+
+ self.nullables = {nt for nt, rules in self.productions.items() if '^' in rules}
+
+ print(f"Nullable non-terminals: {self.nullables}")
+
+ print("\nEliminating null productions.")
+
+ new_productions = {}
+
+ for nt, rules in self.productions.items():
+
+ new_rules = set()
+
+ for rule in rules:
+
+ if rule != '^':
+
+ new_rules.add(rule)
+
+ nullable_combinations = self._generate_nullable_combinations(rule)
+
+ new_rules.update(nullable_combinations)
+
+ new_productions[nt] = new_rules
+self.productions = new_productions
+
+ self.display()
+
+ def eliminate_unit_productions(self):
+
+ print("\nStep 3: Eliminating unit productions.")
+
+ new_productions = {}
+
+ self.unit_productions = [(nt, rule) for nt, rules in self.productions.items() for rule in rules 
+
+if len(rule) == 1 and rule.isupper()]
+
+ while self.unit_productions:
+
+ nt, target = self.unit_productions.pop()
+
+ if target in self.productions:
+
+ new_productions[nt] = new_productions.get(nt, set()) | (self.productions[target] -
+
+{target})
+
+ for rule in self.productions[target]:
+
+ if len(rule) == 1 and rule.isupper():
+
+ self.unit_productions.append((nt, rule))
+
+ else:
+
+ new_productions[nt].add(rule)
+
+ for nt, rules in self.productions.items():
+
+ if nt not in new_productions:
+
+ new_productions[nt] = rules
+
+ self.productions = new_productions
+
+ self.display()
+
+ def eliminate_useless_symbols(self):
+
+ print("\nStep 4: Eliminating useless symbols.")
+
+ # Identify all reachable symbols
+
+ reachable = set()
+
+ symbols_to_check = {"S'"} # Start with the new start symbol
+
+ while symbols_to_check:
+
+ current = symbols_to_check.pop()
+
+ if current in self.productions:
+if current not in reachable:
+
+ reachable.add(current)
+
+ for rule in self.productions[current]:
+
+ for symbol in rule:
+
+ if symbol.isupper() and symbol not in reachable:
+
+ symbols_to_check.add(symbol)
+
+ 
+
+ # Remove non-reachable symbols
+
+ new_productions = {nt: rules for nt, rules in self.productions.items() if nt in reachable}
+
+ self.productions = new_productions
+
+ self.display()
+
+ def convert_to_binary_productions(self):
+
+ print("\nStep 5: Converting to binary productions.")
+
+ def add_new_non_terminal(symbols, productions, counter):
+
+ new_non_terminal = f'X{counter}'
+
+ productions[new_non_terminal] = {''.join(symbols)}
+
+ return new_non_terminal, counter + 1
+
+ new_productions = {}
+
+ counter = 1
+
+ for nt, prods in self.productions.items():
+
+ for prod in prods:
+
+ if len(prod) > 2:
+
+ symbols = list(prod)
+
+ while len(symbols) > 2:
+
+ left = symbols.pop(0)
+
+ new_non_terminal, counter = add_new_non_terminal(symbols[:2], 
+
+new_productions, counter)
+
+ symbols = [left, new_non_terminal]
+
+ new_productions.setdefault(nt, set()).add(''.join(symbols))
+
+ else:
+
+ new_productions.setdefault(nt, set()).add(prod)
+self.productions = new_productions
+
+ self.display()
+
+ def ensure_terminal_productions(self):
+
+ print("\nStep 6: Ensuring terminal productions.")
+
+ terminal_var_map = {}
+
+ new_productions = {}
+
+ for nt, rules in self.productions.items():
+
+ new_rules = set()
+
+ for rule in rules:
+
+ new_rule = ""
+
+ for char in rule:
+
+ if char.islower():
+
+ if char not in terminal_var_map:
+
+ new_var = self._create_new_var()
+
+ terminal_var_map[char] = new_var
+
+ self.new_productions[new_var] = {char}
+
+ new_rule += terminal_var_map[char]
+
+ else:
+
+ new_rule += char
+
+ new_rules.add(new_rule)
+
+ new_productions[nt] = new_rules
+
+ self.productions.update(self.new_productions)
+
+ self.productions = new_productions
+
+ self.display()
+
+ def _generate_nullable_combinations(self, rule):
+
+ nullable_positions = [i for i, nt in enumerate(rule) if nt in self.nullables]
+
+ combinations = set()
+
+ for i in range(1, len(nullable_positions) + 1):
+
+ for comb in itertools.combinations(nullable_positions, i):
+
+ new_rule = list(rule)
+
+ for pos in comb:
+
+ new_rule[pos] = ''
+combinations.add(''.join(new_rule))
+
+ combinations.add(rule) # Include the original rule itself
+
+ return combinations
+
+ def _create_new_var(self):
+
+ new_var = f"X{self.new_var_counter}"
+
+ self.new_var_counter += 1
+
+ return new_var
+
+ def display(self):
+
+ print("\nProductions in CNF:")
+
+ all_productions = {**self.productions, **self.new_productions}
+
+ for nt, rules in all_productions.items():
+
+ print(f"{nt} -> {' | '.join(rules)}")
+
+if __name__ == "__main__":
+
+ cfg = {}
+
+ print("Enter the grammar productions in the format 'A -> B | C | ^' (enter 'done' when 
+
+finished):")
+
+ while True:
+
+ production = input()
+
+ if production == "done":
+
+ break
+
+ lhs, rhs = production.split("->")
+
+ lhs = lhs.strip()
+
+ rhs = set(map(str.strip, rhs.split("|")))
+
+ cfg[lhs] = rhs
+
+ converter = CFGtoCNFConverter(cfg)
+
+ converter.add_new_start_symbol() # Add new start symbol
+
+ converter.eliminate_null_productions()
+
+ converter.eliminate_unit_productions()
+
+ converter.eliminate_useless_symbols()
+
+ converter.convert_to_binary_productions()
+converter.ensure_terminal_productions()
+
+ converter.display()
