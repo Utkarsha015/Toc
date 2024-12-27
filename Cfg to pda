@@ -1,0 +1,163 @@
+#Program for cfg to pda
+
+from collections import defaultdict
+
+from typing import List, Dict, Set
+
+class Transition:
+
+def __init__(self, pop_symbol: str, push_symbols: List[str]):
+
+self.pop_symbol = pop_symbol
+
+self.push_symbols = push_symbols
+
+def __repr__(self):
+
+push_symbols_str = ', '.join(self.push_symbols) if self.push_symbols else '^'
+
+return f'Transition(pop: {self.pop_symbol}, push: [{push_symbols_str}])'
+
+class PDA:
+
+def __init__(self, states: Set[str], input_symbols: Set[str], stack_symbols: Set[str],
+
+transition_function: Dict[str, Dict[str, List[Transition]]],
+
+start_state: str, start_stack_symbol: str, accept_states: Set[str]):
+
+self.states = states
+
+self.input_symbols = input_symbols
+
+self.stack_symbols = stack_symbols
+
+self.transition_function = transition_function
+
+self.start_state = start_state
+
+self.start_stack_symbol = start_stack_symbol
+
+self.accept_states = accept_states
+
+def __repr__(self):
+
+transitions_str = []
+
+for non_terminal, transitions in self.transition_function.items():
+
+for input_symbol, trans_list in transitions.items():
+
+for transition in trans_list:
+
+transitions_str.append(f'{non_terminal} --{input_symbol}--> {transition}')
+
+transitions_output = '\n'.join(transitions_str)
+
+return (f'PDA states: {self.states}\n'
+f'Input symbols: {self.input_symbols}\n'
+
+f'Stack symbols: {self.stack_symbols}\n'
+
+f'Transition function:\n{transitions_output}\n'
+
+f'Start state: {self.start_state}\n'
+
+f'Start stack symbol: {self.start_stack_symbol}\n'
+
+f'Accept states: {self.accept_states}')
+
+class CFGToPDAConverter:
+
+@staticmethod
+
+def convert_cfg_to_pda(cfg: Dict[str, List[List[str]]]) -> PDA:
+
+states = {'q0', 'q_accept'}
+
+input_symbols = set() # Will be populated with terminal symbols
+
+stack_symbols = set(cfg.keys()) # Non-terminals as stack symbols
+
+transition_function = defaultdict(lambda: defaultdict(list))
+
+# Populate input symbols and transition function
+
+for non_terminal, productions in cfg.items():
+
+for production in productions:
+
+if not production: # Epsilon production
+
+transition_function[non_terminal][''].append(Transition(non_terminal, []))
+
+else:
+
+push_symbols = list(production)
+
+transition_function[non_terminal][''].append(Transition(non_terminal, 
+
+push_symbols))
+
+for symbol in production:
+
+if symbol.islower(): # Assuming lowercase letters are terminal symbols
+
+input_symbols.add(symbol)
+
+start_state = 'q0'
+
+start_stack_symbol = next(iter(cfg)) # Start with a non-terminal
+
+accept_states = {'q_accept'}
+
+return PDA(states, input_symbols, stack_symbols, transition_function, start_state, 
+
+start_stack_symbol, accept_states)
+def get_cfg_from_user() -> Dict[str, List[List[str]]]:
+
+cfg = {}
+
+print("Enter your CFG productions (type 'done' to finish):")
+
+while True:
+
+non_terminal = input("Non-terminal (e.g., S): ").strip()
+
+if non_terminal.lower() == 'done':
+
+break
+
+productions = input("Productions (comma-separated, use ^ for empty production): 
+
+").strip().split(',')
+
+production_list = []
+
+for prod in productions:
+
+prod = prod.strip()
+
+if prod == '^':
+
+production_list.append([]) # Epsilon production
+
+else:
+
+production_list.append(prod.split())
+
+cfg[non_terminal] = production_list
+
+return cfg
+
+if __name__ == '__main__':
+
+cfg = get_cfg_from_user()
+
+pda = CFGToPDAConverter.convert_cfg_to_pda(cfg)
+
+# Output the PDA representation
+
+print("\nPDA representation:")
+
+print(pda)
