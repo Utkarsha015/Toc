@@ -1,0 +1,104 @@
+import java.util.ArrayList;
+
+import java.util.Scanner;
+
+public class TuringMachine {
+
+static int[][] transitions = {{1, 5, 4, 5, 3}, {1, 2, 5, 5, 1},
+
+{2, 5, 5, 0, 2}, {5, 5, 4, 5, 3}, {4, 4, 4, 4, 4}, {5, 5, 5, 5, 5}};
+
+static String[] symbols = {"1", "0", " ", "x", "y"};
+
+static int[][] pointer = {{1, 1, 0, 1, 1}, {1, 0, 1, 1, 1}, {0, 1, 1, 1, 0},
+
+{1, 1, 0, 1, 1}, {1, 1, 1, 1, 1}, {1, 1, 1, 1, 1}};
+
+static int[][] replace = {{3, 3, 3, 3, 4}, {0, 4, 3, 3, 4}, {0, 3, 3, 3, 4},
+
+{0, 1, 2, 3, 4}, {0, 1, 2, 3, 4}, {0, 1, 2, 3, 4}};
+
+public static void main(String[] args) {
+
+int state = 0;
+
+int acc = 4; // Accepting state
+
+int dec = 5; // Rejecting state
+
+int head = 0; // Head position
+
+Scanner scanner = new Scanner(System.in);
+
+System.out.print("Enter the string: ");
+
+String input = scanner.nextLine();
+
+ArrayList<String> tape = new ArrayList<>();
+
+for (char c : input.toCharArray()) {
+
+tape.add(String.valueOf(c));
+
+}
+
+tape.add(" ");
+
+System.out.println("Tape: " + tape);
+
+System.out.println("State = " + state + ", Head = " + head);
+
+while (state < acc) {
+
+int currentState = state;
+
+String currentSymbol = tape.get(head);
+
+int symbolIndex = -1;
+
+for (int i = 0; i < symbols.length; i++) {
+
+if (symbols[i].equals(currentSymbol)) {
+
+symbolIndex = i;
+
+break;
+
+}
+
+}
+
+tape.set(head, symbols[replace[currentState][symbolIndex]]);
+
+state = transitions[currentState][symbolIndex];
+
+if (pointer[currentState][symbolIndex] == 0) {
+
+head -= 1;
+
+} else {
+
+head += 1;
+
+}
+
+System.out.println("Tape: " + tape);
+
+System.out.println("State = " + state + ", Head = " + head);
+
+}
+
+if (state == acc) {
+System.out.println("The given string passes");
+
+} else {
+
+System.out.println("The given string does not pass");
+
+}
+
+scanner.close();
+
+}
+
+}
