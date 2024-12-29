@@ -1,0 +1,82 @@
+def check_dfa(dfa, states, inputs, initial_state, final_states):
+
+ if initial_state not in states:
+
+ return False
+
+ for state in final_states:
+
+ if state not in states:
+
+ return False
+
+ for state in dfa:
+
+ for inp in dfa[state]:
+
+ if inp not in inputs: # Check for valid input
+
+ return False
+
+ if dfa[state][inp] != '' and dfa[state][inp] not in states: # Check for valid state
+
+ return False
+
+ return True
+
+def check_string(string, dfa, initial_state, final_states):
+
+ state = initial_state
+
+ for symbol in string:
+
+ if symbol in dfa[state]:
+
+ state = dfa[state][symbol]
+
+ else:
+
+ return False
+
+ return state in final_states
+
+# Input Section
+
+states = input("Enter the set of states: ").split()
+
+inputs = input("Enter the set of inputs: ").split()
+
+initial_state = input("Enter the initial state: ")
+
+final_states = input("Enter the set of accepting states: ").split()
+
+print("Enter the transitions:")
+
+dfa = {}
+
+for state in states:
+
+ dfa[state] = {}
+
+ for inp in inputs:
+
+ print(f"Transition for {state} on input {inp}: ", end="")
+
+ dfa[state][inp] = input() or '' # Handle empty input
+
+# Validate DFA and check string
+
+if check_dfa(dfa, states, inputs, initial_state, final_states):
+
+ string = input("Enter the string: ")
+if check_string(string, dfa, initial_state, final_states):
+
+ print("The string is accepted by the DFA")
+
+ else:
+
+ print("The string is not accepted by the DFA")
+
+else:
+
+ print("The DFA is not valid")
